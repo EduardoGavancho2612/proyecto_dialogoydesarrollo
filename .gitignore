@@ -1,0 +1,21 @@
+# Credenciales reales — nunca deben subirse. Solo .env.example va al repo.
+.env
+.env.*
+!.env.example
+
+# Volcados con datos reales: emails de usuarios, hashes de contraseña, contenido real.
+# El esquema (01) y la guía (DEPLOY.md) sí quedan en el repo por si sirven de referencia.
+deploy/02_datos.sql
+deploy/03_completo_esquema_y_datos.sql
+
+# Archivos subidos desde el panel (fotos, PDFs, audio): son contenido, no código.
+# Pesan ~23 MB y cambian constantemente — se transfieren aparte (FTP/Administrador de
+# archivos), no por git. Se conserva la carpeta vacía con un .gitkeep en cada subcarpeta.
+uploads/*
+!uploads/*/
+!uploads/*/.gitkeep
+
+# Editor / SO
+.vscode/
+.DS_Store
+Thumbs.db

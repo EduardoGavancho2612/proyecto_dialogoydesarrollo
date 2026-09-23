@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /public/
+Disallow: /admin/
+Disallow: /config/
+Disallow: /uploads/
+Disallow: /vendor/
+
+Sitemap: https://dialogoydesarrollo.pe/public/sitemap.php
