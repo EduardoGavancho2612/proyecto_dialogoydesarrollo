@@ -64,7 +64,7 @@ breadcrumb('Reportajes', ['Inicio' => 'index.php', 'Reportajes' => null]);
                 <?php endif; ?>
                 <?php foreach ($reportajes as $i => $r): ?>
                 <div class="col-lg-4 col-md-6 grids5-info <?php echo $i >= 3 ? 'mt-5' : ''; ?>">
-                    <a href="reportaje.php?id=<?php echo (int) $r['id']; ?>" class="d-block">
+                    <a href="reportaje.php?id=<?php echo (int) $r['id']; ?>" class="d-block ddp-corner-red">
                         <img src="<?php echo e(media_url($r['foto_principal'])); ?>" alt="<?php echo e($r['titulo']); ?>" class="img-fluid">
                     </a>
                     <div class="blog-info">

@@ -83,7 +83,7 @@ require __DIR__ . '/inc/header.php';
         <div class="video-grids-info row">
             <div class="video-gd-right col-lg-6 p-0">
                 <div class="position-relative">
-                    <a href="reportaje.php?id=<?php echo (int) $destacado['id']; ?>">
+                    <a href="reportaje.php?id=<?php echo (int) $destacado['id']; ?>" class="ddp-corner-red">
                         <img src="<?php echo e(media_url($destacado['foto_principal'])); ?>" alt="<?php echo e($destacado['titulo']); ?>" class="img-fluid">
                     </a>
                 </div>
@@ -112,7 +112,7 @@ require __DIR__ . '/inc/header.php';
                 <?php endif; ?>
                 <?php foreach ($reportajes as $r): ?>
                 <div class="col-lg-4 col-md-6 grids5-info mt-5">
-                    <a href="reportaje.php?id=<?php echo (int) $r['id']; ?>" class="d-block">
+                    <a href="reportaje.php?id=<?php echo (int) $r['id']; ?>" class="d-block ddp-corner-red">
                         <img src="<?php echo e(media_url($r['foto_principal'])); ?>" alt="<?php echo e($r['titulo']); ?>" class="img-fluid">
                     </a>
                     <div class="blog-info">

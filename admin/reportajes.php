@@ -25,7 +25,7 @@ $stmt = $pdo->query("
     FROM reportajes r
     LEFT JOIN autores a ON a.id = r.autor_id
     LEFT JOIN usuarios u ON u.id = r.usuario_id
-    ORDER BY r.fecha_publicacion DESC
+    ORDER BY (r.estado = 'borrador') DESC, r.fecha_publicacion DESC
 ");
 $reportajes = $stmt->fetchAll();
 
@@ -61,7 +61,7 @@ require __DIR__ . '/../config/layout_top.php';
                                                 <td><?php echo htmlspecialchars($r['titulo']); ?></td>
                                                 <td><?php echo htmlspecialchars($r['autor'] ?? '—'); ?></td>
                                                 <td><?php echo htmlspecialchars(mb_strimwidth((string) $r['resumen_corto'], 0, 80, '...')); ?></td>
-                                                <td><?php echo htmlspecialchars($r['fecha_publicacion']); ?></td>
+                                                <td><?php echo htmlspecialchars($r['fecha_publicacion'] ?? '—'); ?></td>
                                                 <td>
                                                     <?php if ($r['es_destacado']): ?>
                                                         <span class="badge badge-success">Si</span>
@@ -72,6 +72,8 @@ require __DIR__ . '/../config/layout_top.php';
                                                 <td>
                                                     <?php if ($r['estado'] === 'publicado'): ?>
                                                         <span class="badge badge-success">Publicado</span>
+                                                    <?php elseif ($r['estado'] === 'borrador'): ?>
+                                                        <span class="badge badge-warning">Borrador</span>
                                                     <?php else: ?>
                                                         <span class="badge badge-secondary">Oculto</span>
                                                     <?php endif; ?>
@@ -85,9 +87,9 @@ require __DIR__ . '/../config/layout_top.php';
                                                 </td>
                                                 <td>
                                                     <?php if (puede('reportajes', 'editar')): ?>
-                                                    <a href="reportaje_form.php?id=<?php echo (int) $r['id']; ?>" class="btn btn-info btn-sm"><i class="fa fa-pencil"></i></a>
+                                                    <a href="reportaje_form.php?id=<?php echo (int) $r['id']; ?>" class="btn btn-info btn-sm" title="<?php echo $r['estado'] === 'borrador' ? 'Continuar editando' : 'Editar'; ?>"><i class="fa fa-pencil"></i></a>
                                                     <?php endif; ?>
-                                                    <?php if (puede('reportajes', 'alternar')): ?>
+                                                    <?php if ($r['estado'] !== 'borrador' && puede('reportajes', 'alternar')): ?>
                                                     <form method="post" action="reportaje_toggle.php" class="d-inline" onsubmit="return confirm('<?php echo $r['estado'] === 'publicado' ? '¿Ocultar' : '¿Mostrar'; ?> este reportaje en el sitio publico?');">
                                                         <input type="hidden" name="id" value="<?php echo (int) $r['id']; ?>">
                                                         <button type="submit" class="btn <?php echo $r['estado'] === 'publicado' ? 'btn-secondary' : 'btn-success'; ?> btn-sm" title="<?php echo $r['estado'] === 'publicado' ? 'Ocultar' : 'Mostrar'; ?>">

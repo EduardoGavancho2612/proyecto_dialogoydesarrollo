@@ -85,10 +85,10 @@ CREATE TABLE `reportajes` (
   `desarrollo` longtext NOT NULL,
   `foto_principal` varchar(255) DEFAULT NULL,
   `pdf_adjunto` varchar(255) DEFAULT NULL,
-  `fecha_publicacion` date NOT NULL,
+  `fecha_publicacion` date DEFAULT NULL,
   `es_destacado` tinyint(1) NOT NULL DEFAULT 0,
-  `estado` enum('publicado','oculto') NOT NULL DEFAULT 'publicado',
-  `autor_id` int(10) unsigned NOT NULL,
+  `estado` enum('publicado','oculto','borrador') NOT NULL DEFAULT 'borrador',
+  `autor_id` int(10) unsigned DEFAULT NULL,
   `usuario_id` int(10) unsigned NOT NULL,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
   `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
@@ -99,7 +99,7 @@ CREATE TABLE `reportajes` (
   KEY `idx_reportajes_destacado` (`es_destacado`),
   CONSTRAINT `fk_reportajes_autor` FOREIGN KEY (`autor_id`) REFERENCES `autores` (`id`) ON UPDATE CASCADE,
   CONSTRAINT `fk_reportajes_usuario` FOREIGN KEY (`usuario_id`) REFERENCES `usuarios` (`id`) ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=36 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 DROP TABLE IF EXISTS `reportajes_fotos`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;

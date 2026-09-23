@@ -15,6 +15,7 @@ exigir('reportajes', $id ? 'editar' : 'crear');
 $reportaje = [
     'titulo' => '', 'resumen_corto' => '', 'desarrollo' => '', 'foto_principal' => '',
     'pdf_adjunto' => '', 'fecha_publicacion' => date('Y-m-d'), 'es_destacado' => 0, 'autor_id' => '',
+    'estado' => 'borrador',
 ];
 $errors = [];
 
@@ -40,6 +41,8 @@ $autores = $pdo->query("
 ")->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $accion = ($_POST['accion'] ?? '') === 'borrador' ? 'borrador' : 'publicar';
+
     $titulo = trim($_POST['titulo'] ?? '');
     $resumen = trim($_POST['resumen_corto'] ?? '');
     $desarrolloRaw = trim($_POST['desarrollo'] ?? '');
@@ -49,9 +52,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $autorId = (int) ($_POST['autor_id'] ?? 0);
 
     if ($titulo === '') $errors[] = 'El titulo es obligatorio.';
-    if ($desarrolloRaw === '') $errors[] = 'El desarrollo del reportaje es obligatorio.';
-    if ($fecha === '') $errors[] = 'La fecha es obligatoria.';
-    if ($autorId <= 0) $errors[] = 'Debes seleccionar un autor.';
+
+    // Un borrador se puede guardar incompleto, para seguir editando despues.
+    // Publicar si exige que el reportaje este completo.
+    if ($accion === 'publicar') {
+        if ($desarrolloRaw === '') $errors[] = 'El desarrollo del reportaje es obligatorio.';
+        if ($fecha === '') $errors[] = 'La fecha es obligatoria.';
+        if ($autorId <= 0) $errors[] = 'Debes seleccionar un autor.';
+    }
 
     $fotoPath = $reportaje['foto_principal'] ?? null;
     $pdfPath = $reportaje['pdf_adjunto'] ?? null;
@@ -65,15 +73,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if (empty($errors)) {
+        $fechaDb = $fecha !== '' ? $fecha : null;
+        $autorIdDb = $autorId > 0 ? $autorId : null;
+        // "Publicar" siempre deja el reportaje visible en el sitio; para ocultar uno ya
+        // publicado se usa el boton de ojo en el listado, no este formulario.
+        $estado = $accion === 'publicar' ? 'publicado' : 'borrador';
+
         if ($id) {
-            $stmt = $pdo->prepare('UPDATE reportajes SET titulo = ?, resumen_corto = ?, desarrollo = ?, foto_principal = ?, pdf_adjunto = ?, fecha_publicacion = ?, es_destacado = ?, autor_id = ? WHERE id = ?');
-            $stmt->execute([$titulo, $resumen, $desarrollo, $fotoPath, $pdfPath, $fecha, $destacado, $autorId, $id]);
-            set_flash('success', 'Reportaje actualizado correctamente.');
+            $stmt = $pdo->prepare('UPDATE reportajes SET titulo = ?, resumen_corto = ?, desarrollo = ?, foto_principal = ?, pdf_adjunto = ?, fecha_publicacion = ?, es_destacado = ?, autor_id = ?, estado = ? WHERE id = ?');
+            $stmt->execute([$titulo, $resumen, $desarrollo, $fotoPath, $pdfPath, $fechaDb, $destacado, $autorIdDb, $estado, $id]);
+            set_flash('success', $accion === 'borrador' ? 'Borrador guardado.' : 'Reportaje publicado correctamente.');
         } else {
-            $stmt = $pdo->prepare('INSERT INTO reportajes (titulo, resumen_corto, desarrollo, foto_principal, pdf_adjunto, fecha_publicacion, es_destacado, autor_id, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
-            $stmt->execute([$titulo, $resumen, $desarrollo, $fotoPath, $pdfPath, $fecha, $destacado, $autorId, $_SESSION['usuario_id']]);
+            $stmt = $pdo->prepare('INSERT INTO reportajes (titulo, resumen_corto, desarrollo, foto_principal, pdf_adjunto, fecha_publicacion, es_destacado, autor_id, estado, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+            $stmt->execute([$titulo, $resumen, $desarrollo, $fotoPath, $pdfPath, $fechaDb, $destacado, $autorIdDb, $estado, $_SESSION['usuario_id']]);
             $id = (int) $pdo->lastInsertId();
-            set_flash('success', 'Reportaje creado correctamente. Ya puedes agregarle fotos en la seccion Imagenes.');
+            set_flash('success', $accion === 'borrador'
+                ? 'Borrador guardado. Puedes seguir editandolo cuando quieras.'
+                : 'Reportaje publicado correctamente. Ya puedes agregarle fotos en la seccion Imagenes.');
         }
         header('Location: reportajes.php');
         exit;
@@ -95,8 +111,17 @@ require __DIR__ . '/../config/layout_top.php';
                 <div class="row">
                     <div class="col-lg-8">
                         <div class="card">
-                            <div class="card-header">
+                            <div class="card-header d-flex justify-content-between align-items-center">
                                 <h4 class="card-title"><?php echo htmlspecialchars($page_title); ?></h4>
+                                <?php if ($id): ?>
+                                    <?php if ($reportaje['estado'] === 'borrador'): ?>
+                                        <span class="badge badge-warning">Borrador</span>
+                                    <?php elseif ($reportaje['estado'] === 'publicado'): ?>
+                                        <span class="badge badge-success">Publicado</span>
+                                    <?php else: ?>
+                                        <span class="badge badge-secondary">Oculto</span>
+                                    <?php endif; ?>
+                                <?php endif; ?>
                             </div>
                             <div class="card-body">
                                 <?php foreach ($errors as $error): ?>
@@ -116,7 +141,7 @@ require __DIR__ . '/../config/layout_top.php';
                                     </div>
                                     <div class="form-group">
                                         <label><strong>Autor</strong></label>
-                                        <select name="autor_id" class="form-control" required <?php echo empty($autores) ? 'disabled' : ''; ?>>
+                                        <select name="autor_id" class="form-control" <?php echo empty($autores) ? 'disabled' : ''; ?>>
                                             <option value="">-- Selecciona un autor --</option>
                                             <?php foreach ($autores as $a): ?>
                                                 <option value="<?php echo (int) $a['id']; ?>" <?php echo ((int) $reportaje['autor_id'] === (int) $a['id']) ? 'selected' : ''; ?>>
@@ -124,6 +149,7 @@ require __DIR__ . '/../config/layout_top.php';
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
+                                        <small class="text-muted">No hace falta para guardar un borrador; si para publicar.</small>
                                     </div>
                                     <div class="form-group">
                                         <label><strong>Resumen corto</strong></label>
@@ -131,17 +157,17 @@ require __DIR__ . '/../config/layout_top.php';
                                     </div>
                                     <div class="form-group">
                                         <label><strong>Desarrollo</strong></label>
-                                        <textarea name="desarrollo" class="form-control" rows="8" required><?php echo htmlspecialchars($reportaje['desarrollo']); ?></textarea>
+                                        <textarea name="desarrollo" id="desarrollo" class="form-control" rows="8"><?php echo htmlspecialchars($reportaje['desarrollo']); ?></textarea>
                                         <small class="text-muted">
-                                            Escribe el texto normal (deja una linea en blanco entre parrafos) y se formatea solo.
-                                            Tambien puedes usar HTML: <code>&lt;p&gt;</code>, <code>&lt;strong&gt;</code> para subtitulos en negrita,
-                                            y <code>&lt;img src="uploads/fotos/archivo.jpg"&gt;</code> para intercalar una foto (subela antes desde
-                                            <a href="imagen_form.php" target="_blank">Imagenes</a> y copia su ruta).
+                                            Usa la barra de herramientas para dar formato (negrita, subtitulos, listas, citas, enlaces).
+                                            Para intercalar una foto, subela antes desde
+                                            <a href="imagen_form.php" target="_blank">Imagenes</a>, copia su ruta y pegala en el boton de imagen del editor.
                                         </small>
                                     </div>
                                     <div class="form-group">
                                         <label><strong>Fecha de publicacion</strong></label>
-                                        <input type="date" name="fecha_publicacion" class="form-control" value="<?php echo htmlspecialchars($reportaje['fecha_publicacion']); ?>" required>
+                                        <input type="date" name="fecha_publicacion" class="form-control" value="<?php echo htmlspecialchars($reportaje['fecha_publicacion'] ?? ''); ?>">
+                                        <small class="text-muted">No hace falta para guardar un borrador; si para publicar.</small>
                                     </div>
                                     <div class="form-group form-check">
                                         <input type="checkbox" name="es_destacado" id="es_destacado" class="form-check-input" <?php echo $reportaje['es_destacado'] ? 'checked' : ''; ?>>
@@ -161,7 +187,12 @@ require __DIR__ . '/../config/layout_top.php';
                                             <div class="mt-2"><a href="../<?php echo htmlspecialchars($reportaje['pdf_adjunto']); ?>" target="_blank">Ver PDF actual</a></div>
                                         <?php endif; ?>
                                     </div>
-                                    <button type="submit" class="btn btn-primary" <?php echo empty($autores) ? 'disabled' : ''; ?>>Guardar</button>
+                                    <button type="submit" name="accion" value="borrador" class="btn btn-outline-secondary">
+                                        <i class="fa fa-save"></i> Guardar borrador
+                                    </button>
+                                    <button type="submit" name="accion" value="publicar" class="btn btn-primary" <?php echo empty($autores) ? 'disabled' : ''; ?>>
+                                        <i class="fa fa-globe"></i> Publicar
+                                    </button>
                                     <a href="reportajes.php" class="btn btn-light">Cancelar</a>
                                 </form>
 
@@ -178,4 +209,28 @@ require __DIR__ . '/../config/layout_top.php';
                     </div>
                 </div>
 <?php
+$extra_scripts = <<<'HTML'
+    <script src="../vendor/ckeditor/ckeditor.js"></script>
+    <script>
+        (function () {
+            CKEDITOR.replace('desarrollo', {
+                language: 'es',
+                height: 320,
+                toolbar: [
+                    { name: 'formato', items: ['Format'] },
+                    { name: 'estilos', items: ['Bold', 'Italic'] },
+                    { name: 'listas', items: ['NumberedList', 'BulletedList', 'Blockquote'] },
+                    { name: 'insertar', items: ['Link', 'Unlink', 'Image'] },
+                    { name: 'deshacer', items: ['Undo', 'Redo'] },
+                    { name: 'fuente', items: ['Source'] }
+                ],
+                format_tags: 'p;h3;h4',
+                removeButtons: '',
+                // Solo permite lo que config/content_html.php conserva al guardar
+                // (ver DESARROLLO_TAGS_PERMITIDAS); todo lo demas se descarta igual en el servidor.
+                allowedContent: 'p br; strong b; em i; blockquote; ul ol li; a[!href]; img[!src,alt]; h3; h4'
+            });
+        })();
+    </script>
+HTML;
 require __DIR__ . '/../config/layout_bottom.php';

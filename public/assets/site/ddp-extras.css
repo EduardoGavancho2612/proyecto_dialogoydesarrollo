@@ -1,0 +1,20 @@
+/* Acento rojo en la esquina superior derecha de las imagenes de reportajes. */
+.ddp-corner-red {
+    position: relative;
+    display: block;
+    overflow: hidden;
+}
+
+.ddp-corner-red::after {
+    content: "";
+    position: absolute;
+    top: -22px;
+    right: -22px;
+    width: clamp(64px, 16%, 130px);
+    aspect-ratio: 1 / 1;
+    background: var(--primary, #e0020d);
+    border-radius: 50%;
+    box-shadow: 0 0 0 6px rgba(255, 255, 255, .18);
+    z-index: 2;
+    pointer-events: none;
+}

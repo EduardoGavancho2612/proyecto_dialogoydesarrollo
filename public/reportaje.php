@@ -61,7 +61,7 @@ breadcrumb($reportaje['titulo'], ['Inicio' => 'index.php', 'Reportajes' => 'repo
                         </div>
 
                         <?php if (!empty($reportaje['foto_principal'])): ?>
-                        <div class="single-post-image mb-4 text-center">
+                        <div class="single-post-image mb-4 text-center ddp-corner-red">
                             <img src="<?php echo e(media_url($reportaje['foto_principal'])); ?>" class="img-fluid w-100 radius-image" alt="<?php echo e($reportaje['titulo']); ?>">
                         </div>
                         <?php endif; ?>

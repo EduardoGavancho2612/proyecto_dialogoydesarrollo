@@ -62,6 +62,7 @@ $nav_items = [
     <meta name="twitter:image" content="<?php echo e($ogImage); ?>">
     <link href="assets/site/fonts.css" rel="stylesheet">
     <link rel="stylesheet" href="assets/site/style-starter.css">
+    <link rel="stylesheet" href="assets/site/ddp-extras.css">
 </head>
 <body>
 <!-- header -->

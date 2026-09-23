@@ -56,6 +56,11 @@ if (!isset($page_title)) {
                 <span class="logo-abbr-text">DyD</span>
                 <span class="brand-title-text">Dialogo y<br>Desarrollo</span>
             </a>
+            <div class="nav-control">
+                <div class="hamburger">
+                    <span class="line"></span><span class="line"></span><span class="line"></span>
+                </div>
+            </div>
         </div>
         <!--**********************************
             Nav header end

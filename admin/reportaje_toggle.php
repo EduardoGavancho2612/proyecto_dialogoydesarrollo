@@ -11,7 +11,8 @@ exigir('reportajes', 'alternar');
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = (int) ($_POST['id'] ?? 0);
-    $stmt = $pdo->prepare("UPDATE reportajes SET estado = IF(estado = 'publicado', 'oculto', 'publicado') WHERE id = ?");
+    // No toca los borradores: alternar solo tiene sentido entre publicado y oculto.
+    $stmt = $pdo->prepare("UPDATE reportajes SET estado = CASE estado WHEN 'publicado' THEN 'oculto' WHEN 'oculto' THEN 'publicado' ELSE estado END WHERE id = ?");
     $stmt->execute([$id]);
     set_flash('success', 'Estado del reportaje actualizado.');
 }
