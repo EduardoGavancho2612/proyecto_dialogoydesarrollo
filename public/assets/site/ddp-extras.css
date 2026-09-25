@@ -1,20 +1,28 @@
-/* Acento rojo en la esquina superior derecha de las imagenes de reportajes. */
+/* Pestaña roja en la esquina superior derecha de las imagenes de reportajes:
+   la imagen tiene la esquina recortada en curva y detras se asoma el rojo de marca. */
 .ddp-corner-red {
     position: relative;
     display: block;
     overflow: hidden;
+    border-radius: 14px 14px 0 0;
+    isolation: isolate;
 }
 
-.ddp-corner-red::after {
+.ddp-corner-red::before {
     content: "";
     position: absolute;
-    top: -22px;
-    right: -22px;
-    width: clamp(64px, 16%, 130px);
-    aspect-ratio: 1 / 1;
+    top: 0;
+    right: 0;
+    width: 55%;
+    height: 65%;
     background: var(--primary, #e0020d);
-    border-radius: 50%;
-    box-shadow: 0 0 0 6px rgba(255, 255, 255, .18);
-    z-index: 2;
-    pointer-events: none;
+    z-index: 0;
+}
+
+.ddp-corner-red img {
+    position: relative;
+    z-index: 1;
+    display: block;
+    width: 100%;
+    border-radius: 0 26% 0 0 / 0 48% 0 0;
 }

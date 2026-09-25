@@ -5,4 +5,4 @@ Disallow: /config/
 Disallow: /uploads/
 Disallow: /vendor/
 
-Sitemap: https://dialogoydesarrollo.pe/public/sitemap.php
+Sitemap: https://palegoldenrod-scorpion-651987.hostingersite.com/public/sitemap.php
